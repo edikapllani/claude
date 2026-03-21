@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "members-csv-reader"
+version = "1.0.0"
+description = "A lightweight utility to read and display member names from a CSV file."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Edi Kapllani", email = "eduart.kapllani@enel.com" }
+]
+requires-python = ">=3.8"
+keywords = ["csv", "members", "reader", "cli"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.scripts]
+read-members = "read_members:read_memebers"
+
+[project.urls]
+Homepage = "https://github.com/edikapllani/claude"
+Issues = "https://github.com/edikapllani/claude/issues"
