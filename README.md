@@ -1,94 +1,113 @@
-# Members CSV Reader
+# METAR Weather Reader
 
-A lightweight Python utility to read a CSV file and display the first and last name of each member. Can be used as a CLI tool or imported as a library in your own Python application.
+A Flask web application that fetches live METAR weather reports for any airport in the world and decodes them into plain, readable English — no aviation knowledge required.
 
-## Install
+**What is a METAR?**
+METAR (Meteorological Aerodrome Report) is the global standard format for routine weather observations at airports. They look like this:
 
-**Directly from GitHub:**
-
-```bash
-pip install git+https://github.com/edikapllani/claude.git
+```
+METAR KJFK 221456Z 27015KT 10SM FEW025 BKN060 18/10 A2992
 ```
 
-**Or clone and install locally:**
+This app turns that into: *"Few clouds at 2,500 ft, broken clouds at 6,000 ft. 64°F, winds from the West at 17 mph, visibility 10+ miles, pressure 29.92 inHg."*
 
-```bash
-git clone https://github.com/edikapllani/claude.git
-cd claude
-pip install .
-```
+---
+
+## Features
+
+- Look up any airport by its 4-letter ICAO code (e.g. `KJFK`, `EGLL`, `YSSY`)
+- Displays sky conditions, temperature, dewpoint, wind, visibility, weather events, and pressure
+- Shows both Imperial (°F, mph, inHg) and metric (°C, hPa) units
+- Raw METAR string always shown for reference
+- Graceful error messages for invalid codes or network issues
+
+---
 
 ## Requirements
 
 - Python 3.8 or higher
-- No external dependencies — uses the Python standard library only
+- Dependencies: Flask, requests, python-metar (all installed via `requirements.txt`)
 
-## CLI Usage
+---
+
+## Installation
+
+**Clone and run locally:**
 
 ```bash
-# Use the default members.csv in the current directory
-python read_members.py
-
-# Use a custom CSV file
-python read_members.py path/to/your/file.csv
-
-# After installing the package, use the shorthand command
-read-members path/to/your/file.csv
+git clone https://github.com/edikapllani/claude.git
+cd claude
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
 ```
 
-## Integration — Use as a Library
+Then open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.
 
-Import the function directly into your application:
+---
 
-```python
-from read_members import read_memebers
+## Usage
 
-# Use the default members.csv
-read_memebers()
+1. Enter a 4-letter ICAO airport code in the search box
+2. Press **Get Weather**
+3. Read the plain-English weather report
 
-# Use a custom file path
-read_memebers("path/to/your/file.csv")
+**Example ICAO codes:**
+
+| Code   | Airport                        |
+|--------|--------------------------------|
+| `KJFK` | New York JFK, USA              |
+| `KLAX` | Los Angeles, USA               |
+| `KHIO` | Hillsboro, Oregon, USA         |
+| `EGLL` | London Heathrow, UK            |
+| `EDDM` | Munich, Germany                |
+| `YSSY` | Sydney, Australia              |
+
+> **Note:** ICAO codes are 4 letters. US airports begin with `K` (e.g. `KJFK`). If you only know the 3-letter IATA code (e.g. `JFK`), prepend `K` for US airports.
+
+---
+
+## Data Source
+
+Live weather data is fetched from the **FAA Aviation Weather Center** public API — no API key required:
+
+```
+https://aviationweather.gov/api/data/metar?ids={ICAO}&format=raw
 ```
 
-## CSV Format
+Data is refreshed at the source every 20–60 minutes depending on the airport.
 
-The CSV file must include at minimum the following columns (column order does not matter):
+---
 
-| Column       | Required | Description          |
-|--------------|----------|----------------------|
-| `first_name` | Yes      | Member's first name  |
-| `last_name`  | Yes      | Member's last name   |
-
-Additional columns (e.g. `id`, `email`, `gender`, `ip_address`) are ignored.
-
-**Example CSV:**
+## Project Structure
 
 ```
-id,first_name,last_name,email,gender,ip_address
-1,John,Doe,john@example.com,Male,192.168.1.1
-2,Jane,Smith,jane@example.com,Female,192.168.1.2
+├── app.py                  # Flask app: routes, METAR fetch, and decode logic
+├── templates/
+│   └── index.html          # UI: search form and weather report display
+├── requirements.txt        # Python dependencies
+├── read_members.py         # Unrelated CSV utility (separate tool)
+└── test_read_members.py    # Tests for the CSV utility
 ```
 
-## Error Handling
+---
 
-The utility handles the following error cases gracefully (no exceptions bubble up):
+## Deploying to Production
 
-| Scenario                        | Output                                      |
-|---------------------------------|---------------------------------------------|
-| File not found                  | `Error: 'file.csv' file not found.`         |
-| No read permission              | `Error: Permission denied — cannot read...` |
-| Missing `first_name`/`last_name`| `Error: Missing expected column '...'`      |
-| Any other unexpected error      | `Unexpected error: <details>`               |
+Replace the built-in Flask development server with a production WSGI server:
 
-## Function Reference
-
-```python
-def read_memebers(filepath: str = "members.csv") -> None
+```bash
+pip install gunicorn
+gunicorn app:app
 ```
 
-| Parameter  | Type  | Default        | Description                  |
-|------------|-------|----------------|------------------------------|
-| `filepath` | `str` | `"members.csv"`| Path to the CSV file to read |
+For cloud hosting, the app is compatible with:
+- [Railway](https://railway.app) — `railway up`
+- [Render](https://render.com) — connect your GitHub repo and set start command to `gunicorn app:app`
+- [Fly.io](https://fly.io) — `fly launch`
+
+---
 
 ## Contributing
 
@@ -97,6 +116,8 @@ def read_memebers(filepath: str = "members.csv") -> None
 3. Commit your changes: `git commit -m "Add your feature"`
 4. Push to the branch: `git push origin feature/your-feature`
 5. Open a Pull Request
+
+---
 
 ## License
 
