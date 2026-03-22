@@ -86,10 +86,44 @@ Data is refreshed at the source every 20–60 minutes depending on the airport.
 ├── app.py                  # Flask app: routes, METAR fetch, and decode logic
 ├── templates/
 │   └── index.html          # UI: search form and weather report display
+├── test_app.py             # Unit tests for app.py (44 tests)
 ├── requirements.txt        # Python dependencies
 ├── read_members.py         # Unrelated CSV utility (separate tool)
 └── test_read_members.py    # Tests for the CSV utility
 ```
+
+---
+
+## Running Tests
+
+The test suite uses Python's built-in `unittest` module — no extra dependencies required.
+
+```bash
+python -m unittest test_app -v
+```
+
+All 44 tests should pass in under a second:
+
+```
+----------------------------------------------------------------------
+Ran 44 tests in 0.013s
+
+OK
+```
+
+**What is tested:**
+
+| Area | Tests | Description |
+|---|---|---|
+| `fetch_metar` | 4 | Valid fetch, ICAO uppercasing, empty response → error, network failure |
+| `decode_sky` | 7 | Clear, few/scattered/broken/overcast layers, cumulonimbus, towering cumulus |
+| `decode_wind` | 6 | Calm, not reported, variable direction (VRB), fixed direction, gusts, compass mapping |
+| `decode_visibility` | 7 | All quality bands (excellent / good / reduced / very poor) and boundary values |
+| `decode_phenomena` | 8 | Rain, snow, fog, thunderstorm, freezing rain, multiple simultaneous events |
+| `decode_metar` | 6 | Full pipeline with real METAR strings — keys, values, and raw string preservation |
+| Flask routes | 6 | GET, POST valid/invalid/empty code, network error, ICAO preserved on error |
+
+Tests use mock METAR observations for unit tests (no network calls) and real METAR strings for integration tests.
 
 ---
 
